@@ -1,7 +1,7 @@
 import axios from "axios";
 import _ from "lodash";
 
-const QueryClient = async (chainId, rpcUrls, restUrls) => {
+const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
   const rpcUrl = await findAvailableUrl(
     Array.isArray(rpcUrls) ? rpcUrls : [rpcUrls],
     "rpc"
@@ -24,7 +24,7 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
   };
 
   const getValidators = (pageSize, opts, nextKey) => {
-    opts = opts || {}
+    opts = opts || {};
     const searchParams = new URLSearchParams();
     if (opts.status) searchParams.append("status", opts.status);
     if (pageSize) searchParams.append("pagination.limit", pageSize);
@@ -100,7 +100,8 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
         restUrl +
           "/cosmos/distribution/v1beta1/delegators/" +
           address +
-          "/rewards", opts
+          "/rewards",
+        opts
       )
       .then((res) => res.data)
       .then((result) => {
@@ -114,11 +115,16 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
 
   const getGrants = (botAddress, address, opts) => {
     const searchParams = new URLSearchParams();
-    if(botAddress) searchParams.append("grantee", botAddress);
-    if(address) searchParams.append("granter", address);
+    if (botAddress) searchParams.append("grantee", botAddress);
+    if (address) searchParams.append("granter", address);
     // searchParams.append("msg_type_url", "/cosmos.staking.v1beta1.MsgDelegate");
     return axios
-      .get(restUrl + "/cosmos/authz/v1beta1/grants?" + searchParams.toString(), opts)
+      .get(
+        grantRestUrl +
+          "/cosmos/authz/v1beta1/grants?" +
+          searchParams.toString(),
+        opts
+      )
       .then((res) => res.data)
       .then((result) => {
         const claimGrant = result.grants.find((el) => {
@@ -136,19 +142,17 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
         const stakeGrant = result.grants.find((el) => {
           if (
             el.authorization["@type"] ===
-            "/cosmos.staking.v1beta1.StakeAuthorization" || (
-              // Handle GenericAuthorization for Ledger
-              el.authorization["@type"] ===
+              "/cosmos.staking.v1beta1.StakeAuthorization" ||
+            // Handle GenericAuthorization for Ledger
+            (el.authorization["@type"] ===
               "/cosmos.authz.v1beta1.GenericAuthorization" &&
-              el.authorization.msg ===
-              "/cosmos.staking.v1beta1.MsgDelegate"
-            )
+              el.authorization.msg === "/cosmos.staking.v1beta1.MsgDelegate")
           ) {
             return Date.parse(el.expiration) > new Date();
           } else {
             return false;
           }
-        })
+        });
         return {
           claimGrant,
           stakeGrant,
@@ -162,11 +166,12 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
         restUrl +
           "/cosmos/distribution/v1beta1/delegators/" +
           address +
-          "/withdraw_address", opts
+          "/withdraw_address",
+        opts
       )
       .then((res) => res.data)
       .then((result) => {
-        return result.withdraw_address
+        return result.withdraw_address;
       });
   };
 
@@ -184,16 +189,19 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
 
   async function findAvailableUrl(urls, type) {
     const path = type === "rest" ? "/blocks/latest" : "/block";
-    return Promise.any(urls.map(async (url) => {
-      try {
-        let data = await axios.get(url + path, { timeout: 10000 })
-          .then((res) => res.data)
-        if (type === "rpc") data = data.result;
-        if (data.block?.header?.chain_id === chainId) {
-          return url;
-        }
-      } catch { }
-    }));
+    return Promise.any(
+      urls.map(async (url) => {
+        try {
+          let data = await axios
+            .get(url + path, { timeout: 10000 })
+            .then((res) => res.data);
+          if (type === "rpc") data = data.result;
+          if (data.block?.header?.chain_id === chainId) {
+            return url;
+          }
+        } catch {}
+      })
+    );
   }
 
   return {
@@ -208,7 +216,7 @@ const QueryClient = async (chainId, rpcUrls, restUrls) => {
     getDelegations,
     getRewards,
     getGrants,
-    getWithdrawAddress
+    getWithdrawAddress,
   };
 };
 

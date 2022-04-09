@@ -22,7 +22,7 @@ const Network = async (data, withoutQueryClient) => {
 
   const rpcUrl = data.rpcUrl || directory.rpcUrl(data.name)
   const restUrl = data.restUrl || directory.restUrl(data.name)
-
+  const grantRestUrl = data.grantRestUrl || restUrl;
   const usingDirectory = !![restUrl, rpcUrl].find(el => {
     const match = el => el.match("cosmos.directory")
     if(Array.isArray(el)){
@@ -34,7 +34,12 @@ const Network = async (data, withoutQueryClient) => {
 
   let queryClient
   if(!withoutQueryClient){
-    queryClient = await QueryClient(chain.chainId, rpcUrl, restUrl)
+    queryClient = await QueryClient(
+      chain.chainId,
+      rpcUrl,
+      restUrl,
+      grantRestUrl
+    );
   }
 
   const signingClient = (wallet, key) => {
