@@ -48,10 +48,12 @@ export class Autostake {
         timeStamp('Using REST URL', restUrl)
         timeStamp('Using RPC URL', rpcUrl)
 
-        if(usingDirectory){
-          timeStamp('You are using public nodes, script may fail with many delegations. Check the README to use your own')
-          timeStamp('Delaying briefly to reduce load...')
-          await new Promise(r => setTimeout(r, (Math.random() * 31) * 1000));
+        if (data.throttle && usingDirectory) {
+          timeStamp(
+            "You are using public nodes, script may fail with many delegations. Check the README to use your own"
+          );
+          timeStamp("Delaying briefly to reduce load...");
+          await new Promise((r) => setTimeout(r, Math.random() * 31 * 1000));
         }
 
         try {
