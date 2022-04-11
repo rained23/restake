@@ -58,12 +58,7 @@ const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
     });
   };
 
-  const getValidatorDelegations = (
-    validatorAddress,
-    pageSize,
-    nextKey,
-    retry
-  ) => {
+  const getValidatorDelegations = (validatorAddress, pageSize, nextKey) => {
     const searchParams = new URLSearchParams();
     if (pageSize) searchParams.append("pagination.limit", pageSize);
     if (nextKey) searchParams.append("pagination.key", nextKey);
