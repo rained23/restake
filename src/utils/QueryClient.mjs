@@ -1,5 +1,6 @@
 import axios from "axios";
 import _ from "lodash";
+// import axiosRetry from "axios-retry";
 
 const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
   const rpcUrl = await findAvailableUrl(
@@ -29,6 +30,9 @@ const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
     if (opts.status) searchParams.append("status", opts.status);
     if (pageSize) searchParams.append("pagination.limit", pageSize);
     if (nextKey) searchParams.append("pagination.key", nextKey);
+
+    // axiosRetry(axios, { retries: 5 });
+    // axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay });
     return axios
       .get(
         restUrl +
@@ -53,7 +57,12 @@ const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
     });
   };
 
-  const getValidatorDelegations = (validatorAddress, pageSize, nextKey) => {
+  const getValidatorDelegations = (
+    validatorAddress,
+    pageSize,
+    nextKey,
+    retry
+  ) => {
     const searchParams = new URLSearchParams();
     if (pageSize) searchParams.append("pagination.limit", pageSize);
     if (nextKey) searchParams.append("pagination.key", nextKey);
@@ -66,7 +75,8 @@ const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
           "/delegations?" +
           searchParams.toString()
       )
-      .then((res) => res.data);
+      .then((res) => res.data)
+      .error();
   };
 
   const getBalance = (address, denom) => {
