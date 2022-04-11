@@ -71,8 +71,7 @@ const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
           "/delegations?" +
           searchParams.toString()
       )
-      .then((res) => res.data)
-      .error();
+      .then((res) => res.data);
   };
 
   const getBalance = (address, denom) => {
