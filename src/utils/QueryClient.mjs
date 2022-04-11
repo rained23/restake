@@ -1,6 +1,9 @@
 import axios from "axios";
 import _ from "lodash";
-// import axiosRetry from "axios-retry";
+import axiosRetry from "axios-retry";
+
+axiosRetry(axios, { retries: 5 });
+axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay });
 
 const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
   const rpcUrl = await findAvailableUrl(
@@ -31,8 +34,6 @@ const QueryClient = async (chainId, rpcUrls, restUrls, grantRestUrl) => {
     if (pageSize) searchParams.append("pagination.limit", pageSize);
     if (nextKey) searchParams.append("pagination.key", nextKey);
 
-    // axiosRetry(axios, { retries: 5 });
-    // axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay });
     return axios
       .get(
         restUrl +
